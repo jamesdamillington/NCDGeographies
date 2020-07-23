@@ -1,0 +1,302 @@
+---
+title: "Geographies of Non-Communicable Diseases"
+author: "James Millington"
+date: '2020-07-23'
+output:
+  pdf_document:
+    toc: yes
+  github_document:
+    toc: yes
+  html_document:
+    toc: yes
+    df_print: paged
+  word_document:
+    toc: yes
+---
+
+
+## Aim 
+
+Analyse database of expertise on Non-Communicable Disease (NCDs)
+
+**Questions**
+
+1. Who are the experts in the field?
+2. How has expertise changed over time?
+3. What are the geographies of expertise?
+
+
+```{r, echo=F, warning=F, message=F}
+#set libraries
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(forcats)
+
+#load data
+ncd <- read_csv("NCD_Data_2020-07-21.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
+
+```
+
+## Analysis: Counts
+
+### Authors
+```{r, echo=F, warning=F, message=F}
+
+freq_Author <- ncd %>% group_by(Author) %>%
+   summarise(count = n()) %>%
+   mutate(freq = count / sum(count)) %>%
+   arrange(desc(freq))
+
+freq_Author %>%
+   filter(count>2) %>%
+   ggplot(aes(x=reorder(Author, -count),y=count)) +
+   geom_bar(stat="identity") +
+   xlab("Author")+
+   ggtitle("More than 2 Citations") +
+   coord_flip()
+
+
+ncd %>%
+   mutate(Author = fct_lump(Author, n = 20)) %>%
+   count(Author) %>%
+   top_n(20, Author) %>%
+   ggplot(aes(x=reorder(Author,-n), y=n)) +
+   geom_bar(stat="identity") +
+   xlab("Author")+
+   ylab("Count")+
+   ggtitle("Top 20 Authors by Citation")+
+   coord_flip()
+   
+   
+
+```
+
+### Countries
+```{r, echo=F, warning=F, message=F}
+
+freq_Country <- ncd %>% group_by(Country) %>%
+   summarise(count = n()) %>%
+   mutate(freq = count / sum(count)) %>%
+   arrange(desc(freq))
+
+freq_Country %>%
+   filter(count>2) %>%
+   ggplot(aes(x=reorder(Country, -count),y=count)) +
+   geom_bar(stat="identity") +
+   xlab("Country")+
+   ggtitle("More than 2 Authors")+
+   coord_flip()
+
+topn <- 10
+
+ncd %>%
+   mutate(Country = fct_lump(Country, n = topn))%>%
+   count(Country) %>%
+   top_n(topn, Country) %>%
+   ggplot(aes(x=reorder(Country, -n),y=n)) +
+   geom_bar(stat="identity") +
+   xlab("Country")+
+   ylab("Count")+
+   ggtitle(paste0("Top ",topn," Countries by Citation")) +
+   coord_flip()
+
+```
+
+### Continents
+```{r, echo=F, warning=F, message=F}
+
+freq_Cont <- ncd %>% group_by(Continent) %>%
+   summarise(count = n()) %>%
+   mutate(freq = count / sum(count)) %>%
+   arrange(desc(freq))
+
+freq_Cont %>%
+   filter(count>2) %>%
+   ggplot(aes(x=reorder(Continent, -count),y=count)) +
+   geom_bar(stat="identity") +
+   xlab("Continent")+
+   ggtitle("More than 2 Authors")+
+   coord_flip()
+
+ncd %>%
+   mutate(Continent = fct_lump(Continent, n = topn))%>%
+   count(Continent) %>%
+   top_n(topn, Continent) %>%
+   ggplot(aes(x=reorder(Continent, -n),y=n)) +
+   geom_bar(stat="identity") +
+   xlab("Continent")+
+   ylab("Count")+
+   ggtitle("Continents by Citation") +
+   coord_flip()
+
+```
+
+## Analysis: Temporal
+
+### Top 10 Authors
+```{r, echo=F, warning=F, message=F}
+
+topn <- 10
+
+top_authors <- ncd %>%
+   mutate(Author = fct_lump(fct_explicit_na(Author), n =topn))%>%
+   count(Author) %>%
+   top_n(topn, Author) 
+
+
+prop_topA_byAY <- ncd %>%
+   filter(Author %in% top_authors$Author) %>%
+   group_by(Author, Year) %>%
+   summarise(count = n()) %>%
+   mutate(prop = count / sum(count)) %>%
+   group_by(Year) %>%
+   mutate(yrprop = count / sum(count)) %>%
+   mutate(yrcount = sum(count)) %>%
+   arrange(Year)
+
+   
+ggplot(prop_topA_byAY, aes(x=Year, y=count, fill=Author)) + 
+   geom_bar(stat="identity", colour="white") +
+   ggtitle(paste0("Top ",topn," Authors by Year: Count"))  
+
+ggplot(prop_topA_byAY, aes(x=Year, y=yrprop, fill=Author)) + 
+   geom_bar(stat="identity", colour="white")  +
+   ylab("Proportion") +
+   ggtitle(paste0("Top ",topn," Authors by Year: Proportion of Count")) +
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+
+
+
+```
+
+
+### Top 20 Countries
+```{r, echo=F, warning=F, message=F}
+
+topn <- 20
+
+#fct_lump to get topn (and lump all others) 
+top_countries <- ncd %>%
+   mutate(Country = fct_lump(fct_explicit_na(Country), n = topn))%>%
+   count(Country) %>%
+   top_n(topn, Country) 
+
+#need this to match up 'other' created by fct_lump above
+top_ncd <- ncd %>%
+   mutate(Country = fct_lump(fct_explicit_na(Country), n = topn))
+
+prop_topC_byCY <- top_ncd %>%
+   filter(Country %in% top_countries$Country) %>%
+   group_by(Country, Year) %>%
+   summarise(count = n()) %>%
+   mutate(prop = count / sum(count)) %>%
+   group_by(Year) %>%
+   mutate(yrprop = count / sum(count)) %>%
+   mutate(yrcount = sum(count)) %>%
+   arrange(Year)
+
+   
+ggplot(prop_topC_byCY, aes(x=Year, y=count, fill=Country)) + 
+   geom_bar(stat="identity", colour="white") +
+   ggtitle(paste0("Top ",topn," Countries by Year: Count"))
+
+ggplot(prop_topC_byCY, aes(x=Year, y=yrprop, fill=Country)) + 
+   geom_bar(stat="identity", colour="white")  +
+   ylab("Proportion")  +
+   ggtitle(paste0("Top ",topn," Countries by Year: Proportion of Count")) +
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+
+  
+
+
+```
+
+### Top 10 Countries
+```{r, echo=F, warning=F, message=F}
+
+topn <- 10
+
+#fct_lump to get topn (and lump all others) 
+top_countries <- ncd %>%
+   mutate(Country = fct_lump(fct_explicit_na(Country), n = topn))%>%
+   count(Country) %>%
+   top_n(topn, Country) 
+
+#need this to match up 'other' created by fct_lump above
+top_ncd <- ncd %>%
+   mutate(Country = fct_lump(fct_explicit_na(Country), n = topn))
+
+#calc proportions
+prop_topC_byCY <- top_ncd %>%
+   filter(Country %in% top_countries$Country) %>%
+   group_by(Country, Year) %>%
+   summarise(count = n()) %>%
+   mutate(prop = count / sum(count)) %>%
+   group_by(Year) %>%
+   mutate(yrprop = count / sum(count)) %>%
+   mutate(yrcount = sum(count)) %>%
+   arrange(Year)
+
+   
+ggplot(prop_topC_byCY, aes(x=Year, y=count, fill=Country)) + 
+   geom_bar(stat="identity", colour="white")  +
+   ggtitle(paste0("Top ",topn," Countries by Year: Count")) 
+
+ggplot(prop_topC_byCY, aes(x=Year, y=yrprop, fill=Country)) + 
+   geom_bar(stat="identity", colour="white")  +
+   ylab("Proportion")  +
+   ggtitle(paste0("Top ",topn," Countries by Year: Proportion of Count")) +
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+
+
+```
+
+### Continents
+```{r, echo=F, warning=F, message=F}
+
+freq_CY <- ncd %>% group_by(Continent, Year) %>%
+   summarise(count = n()) %>%
+   mutate(prop = count / sum(count)) %>%
+   group_by(Year) %>%
+   mutate(yrprop = count / sum(count)) %>%
+   mutate(yrcount = sum(count)) %>%
+   arrange(Year)
+
+ggplot(freq_CY, aes(x=Year, y=count, fill=Continent)) + 
+   geom_bar(stat="identity", colour="white") +
+   ggtitle("Author Continent by Year: Count")
+
+ggplot(freq_CY, aes(x=Year, y=yrprop, fill=Continent)) + 
+   geom_bar(stat="identity", colour="white") +
+   ylab("Proportion")+
+   ggtitle("Author Continent by Year: Proportion of Count") +
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+
+```
+
+### Institution Type
+```{r, echo=F, warning=F, message=F}
+
+freq_ITY <- ncd %>% group_by(InstitutionType, Year) %>%
+   summarise(count = n()) %>%
+   mutate(prop = count / sum(count)) %>%
+   group_by(Year) %>%
+   mutate(yrprop = count / sum(count)) %>%
+   mutate(yrcount = sum(count)) %>%
+   arrange(Year)
+
+ggplot(freq_ITY, aes(x=Year, y=count, fill=InstitutionType)) + 
+   geom_bar(stat="identity", colour="white") +
+   ggtitle("Author Institution Type by Year: Count")  
+
+ggplot(freq_ITY, aes(x=Year, y=yrprop, fill=InstitutionType)) + 
+   geom_bar(stat="identity", colour="white")  +
+   ylab("Proportion")  +
+   ggtitle("Author Inst. Type by Year: Proportion of Count") +
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+
+
+```
+
+
