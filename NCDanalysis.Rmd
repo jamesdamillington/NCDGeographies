@@ -1,7 +1,7 @@
 ---
 title: "Geographies of Non-Communicable Diseases"
 author: "James Millington"
-date: '2020-07-23'
+date: '2020-08-05'
 output:
   pdf_document:
     toc: yes
@@ -34,7 +34,18 @@ library(ggplot2)
 library(forcats)
 
 #load data
-ncd <- read_csv("NCD_Data_2020-07-21.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
+ncd <- read_csv("NCD_Data_2020-08-05.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
+
+#load colours
+ccolours <- read_csv("gapminder_CC.csv")
+col5_vec <- I(ccolours$Colour5)
+names(col5_vec) <- ccolours$Country
+
+con6_vec <- I(ccolours$Cont6Colour)
+names(con6_vec) <- I(ccolours$Continent6)
+
+top10_vec <- I(ccolours$Top10)
+names(top10_vec) <- ccolours$Country
 
 ```
 
@@ -60,15 +71,13 @@ freq_Author %>%
 ncd %>%
    mutate(Author = fct_lump(Author, n = 20)) %>%
    count(Author) %>%
-   top_n(20, Author) %>%
+   top_n(20) %>%
    ggplot(aes(x=reorder(Author,-n), y=n)) +
    geom_bar(stat="identity") +
    xlab("Author")+
    ylab("Count")+
    ggtitle("Top 20 Authors by Citation")+
    coord_flip()
-   
-   
 
 ```
 
@@ -91,9 +100,9 @@ freq_Country %>%
 topn <- 10
 
 ncd %>%
-   mutate(Country = fct_lump(Country, n = topn))%>%
+   mutate(Country = fct_lump(Country, n = topn)) %>%
    count(Country) %>%
-   top_n(topn, Country) %>%
+   top_n(topn) %>%
    ggplot(aes(x=reorder(Country, -n),y=n)) +
    geom_bar(stat="identity") +
    xlab("Country")+
@@ -106,43 +115,87 @@ ncd %>%
 ### Continents
 ```{r, echo=F, warning=F, message=F}
 
-freq_Cont <- ncd %>% group_by(Continent) %>%
-   summarise(count = n()) %>%
-   mutate(freq = count / sum(count)) %>%
-   arrange(desc(freq))
-
-freq_Cont %>%
-   filter(count>2) %>%
-   ggplot(aes(x=reorder(Continent, -count),y=count)) +
-   geom_bar(stat="identity") +
-   xlab("Continent")+
-   ggtitle("More than 2 Authors")+
-   coord_flip()
+# freq_Cont <- ncd %>% group_by(Continent) %>%
+#    summarise(count = n()) %>%
+#    mutate(freq = count / sum(count)) %>%
+#    arrange(desc(freq))
+# 
+# freq_Cont %>%
+#    filter(count>2) %>%
+#    ggplot(aes(x=reorder(Continent, -count),y=count, fill=Continent)) +
+#    geom_bar(stat="identity") +
+#    xlab("Continent")+
+#    ggtitle("More than 2 Authors")+
+#    coord_flip() +
+#    scale_fill_manual(values=con6_vec)
 
 ncd %>%
-   mutate(Continent = fct_lump(Continent, n = topn))%>%
    count(Continent) %>%
-   top_n(topn, Continent) %>%
-   ggplot(aes(x=reorder(Continent, -n),y=n)) +
+   ggplot(aes(x=reorder(Continent, -n),y=n, fill=Continent)) +
    geom_bar(stat="identity") +
    xlab("Continent")+
    ylab("Count")+
    ggtitle("Continents by Citation") +
-   coord_flip()
+   coord_flip() +
+   scale_fill_manual(values=con6_vec)
 
 ```
 
 ## Analysis: Temporal
 
-### Top 10 Authors
+### All Data
 ```{r, echo=F, warning=F, message=F}
 
-topn <- 10
+#Publication by year
+ncd %>% 
+   group_by(Year, `Publication ID`) %>%
+   summarise(count = n()) %>%
+   ggplot(aes(x=Year)) +
+   geom_bar(stat="count", colour="white") +
+   ggtitle("Publications by Year") 
+
+#unique author year
+ncd %>% 
+   group_by(Year, Author) %>%
+   summarise(count = n()) %>%
+   ggplot(aes(x=Year)) +
+   geom_bar(stat="count", colour="white") +
+   ggtitle("Unique Authors by Year") 
+
+#all authors by year
+ncd %>% 
+   ggplot(aes(x=Year)) +
+   geom_bar(stat="count", colour="white") +
+   ggtitle("Total Authors by Year") 
+
+
+ncd %>% 
+   group_by(Year, Institution) %>%
+   summarise(count = n()) %>%
+   ggplot(aes(x=Year)) +
+   geom_bar(stat="count", colour="white") +
+   ggtitle("Unique Institutions by Year") 
+
+
+ncd %>% 
+   group_by(Year, Country) %>%
+   summarise(count = n()) %>%
+   ggplot(aes(x=Year)) +
+   geom_bar(stat="count", colour="white") +
+   ggtitle("Unique Countries by Year") 
+
+```
+
+
+### Top 8 Authors
+```{r, echo=F, warning=F, message=F}
+
+topn <- 8
 
 top_authors <- ncd %>%
    mutate(Author = fct_lump(fct_explicit_na(Author), n =topn))%>%
    count(Author) %>%
-   top_n(topn, Author) 
+   top_n(topn) 
 
 
 prop_topA_byAY <- ncd %>%
@@ -165,8 +218,24 @@ ggplot(prop_topA_byAY, aes(x=Year, y=yrprop, fill=Author)) +
    ylab("Proportion") +
    ggtitle(paste0("Top ",topn," Authors by Year: Proportion of Count")) +
    geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+```
 
-
+```{r}
+# library(gapminder)
+# ccountries <- gapminder::country_colors
+# ccountries <- as.data.frame(ccountries)
+# ccontinents <- gapminder::continent_colors
+# ccontinents <- as.data.frame(ccontinents)
+# 
+# write.csv(ccountries, "gapminder_countries.csv", row.names=T)
+# write.csv(ccontinents, "gapminder_ccontinents.csv", row.names=T)
+# 
+# ccolours <- read_csv("gapminder_CC.csv")
+# 
+# ncd_c <- left_join(ncd, ccolours, by ="Country")
+# 
+# col5_vec <- I(ccolours$Colour5)
+# names(col5_vec) <- ccolours$Country
 
 ```
 
@@ -180,7 +249,7 @@ topn <- 20
 top_countries <- ncd %>%
    mutate(Country = fct_lump(fct_explicit_na(Country), n = topn))%>%
    count(Country) %>%
-   top_n(topn, Country) 
+   top_n(topn) 
 
 #need this to match up 'other' created by fct_lump above
 top_ncd <- ncd %>%
@@ -196,20 +265,20 @@ prop_topC_byCY <- top_ncd %>%
    mutate(yrcount = sum(count)) %>%
    arrange(Year)
 
+prop_topC_byCY <- left_join(prop_topC_byCY, ccolours, by ="Country")
    
 ggplot(prop_topC_byCY, aes(x=Year, y=count, fill=Country)) + 
    geom_bar(stat="identity", colour="white") +
-   ggtitle(paste0("Top ",topn," Countries by Year: Count"))
+   ggtitle(paste0("Top ",topn," Countries by Year: Count")) +
+   scale_fill_manual(values=col5_vec)
+
 
 ggplot(prop_topC_byCY, aes(x=Year, y=yrprop, fill=Country)) + 
    geom_bar(stat="identity", colour="white")  +
    ylab("Proportion")  +
    ggtitle(paste0("Top ",topn," Countries by Year: Proportion of Count")) +
-   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
-
-  
-
-
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3) +
+   scale_fill_manual(values=col5_vec)
 ```
 
 ### Top 10 Countries
@@ -241,13 +310,15 @@ prop_topC_byCY <- top_ncd %>%
    
 ggplot(prop_topC_byCY, aes(x=Year, y=count, fill=Country)) + 
    geom_bar(stat="identity", colour="white")  +
-   ggtitle(paste0("Top ",topn," Countries by Year: Count")) 
+   ggtitle(paste0("Top ",topn," Countries by Year: Count"))  +
+   scale_fill_manual(values=top10_vec)
 
 ggplot(prop_topC_byCY, aes(x=Year, y=yrprop, fill=Country)) + 
    geom_bar(stat="identity", colour="white")  +
    ylab("Proportion")  +
    ggtitle(paste0("Top ",topn," Countries by Year: Proportion of Count")) +
-   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3) +
+   scale_fill_manual(values=top10_vec)
 
 
 ```
@@ -265,20 +336,22 @@ freq_CY <- ncd %>% group_by(Continent, Year) %>%
 
 ggplot(freq_CY, aes(x=Year, y=count, fill=Continent)) + 
    geom_bar(stat="identity", colour="white") +
-   ggtitle("Author Continent by Year: Count")
+   ggtitle("Author Continent by Year: Count") +
+   scale_fill_manual(values=con6_vec)
 
 ggplot(freq_CY, aes(x=Year, y=yrprop, fill=Continent)) + 
    geom_bar(stat="identity", colour="white") +
    ylab("Proportion")+
    ggtitle("Author Continent by Year: Proportion of Count") +
-   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
+   geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)  +
+   scale_fill_manual(values=con6_vec)
 
 ```
 
 ### Institution Type
 ```{r, echo=F, warning=F, message=F}
 
-freq_ITY <- ncd %>% group_by(InstitutionType, Year) %>%
+freq_ITY <- ncd %>% group_by(`Institution Type`, Year) %>%
    summarise(count = n()) %>%
    mutate(prop = count / sum(count)) %>%
    group_by(Year) %>%
@@ -286,11 +359,11 @@ freq_ITY <- ncd %>% group_by(InstitutionType, Year) %>%
    mutate(yrcount = sum(count)) %>%
    arrange(Year)
 
-ggplot(freq_ITY, aes(x=Year, y=count, fill=InstitutionType)) + 
+ggplot(freq_ITY, aes(x=Year, y=count, fill=`Institution Type`)) + 
    geom_bar(stat="identity", colour="white") +
    ggtitle("Author Institution Type by Year: Count")  
 
-ggplot(freq_ITY, aes(x=Year, y=yrprop, fill=InstitutionType)) + 
+ggplot(freq_ITY, aes(x=Year, y=yrprop, fill=`Institution Type`)) + 
    geom_bar(stat="identity", colour="white")  +
    ylab("Proportion")  +
    ggtitle("Author Inst. Type by Year: Proportion of Count") +
