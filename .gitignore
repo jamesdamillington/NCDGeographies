@@ -8,3 +8,5 @@
 *.tex
 *.pdf
 /NCDanalysis_files/
+/png/
+/gif/

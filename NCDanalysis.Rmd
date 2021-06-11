@@ -32,6 +32,7 @@ library(dplyr)
 library(readr)
 library(ggplot2)
 library(forcats)
+library(tmap)
 
 #load data
 ncd <- read_csv("NCD_Data_2020-08-05.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
@@ -111,6 +112,75 @@ ncd %>%
    coord_flip()
 
 ```
+Maps (countries) by paper
+```{r, echo=F, warning=F, message=F}
+
+#with help from https://geocompr.robinlovelace.net/adv-map.html
+
+#get lancet series data only, aggregate authors by year and country
+pmap <- ncd %>% 
+   group_by(Year, `Lancet Series`, Country) %>%
+   summarise(count = n()) %>%
+   filter(`Lancet Series` != 'No')
+
+#get world data (from maps library) 
+data(World)
+World <- filter(World, continent != 'Antarctica')
+
+#join NCD data to map data
+world.dat <- left_join(World, pmap, b=c('name'='Country'))
+
+#function to plot bubble map for a given year
+tmyear <- function(yr){
+
+   pmyear <- tm_shape(world.dat) +
+      tm_polygons() +
+      tm_shape(filter(world.dat,Year==yr)) +
+      tm_bubbles(alpha = 0.75, col = "red", border.col = "black", size = "count") +
+      tm_layout(title = paste0(yr))
+   
+   return(pmyear)
+}
+
+#create plots
+pm2005 <- tmyear(2005)
+pm2007 <- tmyear(2007)
+pm2010 <- tmyear(2010)
+pm2013 <- tmyear(2013)
+pm2018 <- tmyear(2018)
+
+#plot all years together on a facet map
+##need drop.NA.facets=TRUE because there are many NAs in the year column
+pmap.facet <-tm_shape(world.dat) +
+   tm_polygons() +
+   tm_shape(world.dat) +
+   tm_bubbles(alpha = 0.75, col = "red", border.col = "black", size = "count") +
+   tm_facets(by = "Year", free.coords = FALSE, drop.NA.facets=TRUE)
+
+```
+
+
+```{r, echo=F, warning=F, message=F}
+#print maps
+pm2005
+pm2007
+pm2010
+pm2013
+pm2018
+pmap.facet
+```
+
+```{r}
+pmap.anim <-tm_shape(world.dat) +
+   tm_polygons() +
+   tm_shape(world.dat) +
+   tm_bubbles(alpha = 0.75, col = "red", border.col = "black", size = "count") +
+   tm_facets(along = "Year", free.coords = FALSE, drop.empty.facets = TRUE)
+
+#drop.NA.facets=TRUE produces error. Without that term we get 'missing' in last frame which catched the NA cells in Year column (to avoid this need to have a value in every Year row, so would need every country repeated for every year) 
+tmap_animation(pmap.anim, filename = "map_lancet_anim.gif", delay = 75)
+```
+
 
 ### Continents
 ```{r, echo=F, warning=F, message=F}
