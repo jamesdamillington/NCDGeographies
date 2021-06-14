@@ -33,9 +33,11 @@ library(readr)
 library(ggplot2)
 library(forcats)
 library(tmap)
+library(mapdata)
+library(sf)
 
 #load data
-ncd <- read_csv("NCD_Data_2020-08-05.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
+ncd <- read_csv("Copy of NCD reports completed and reformatted version 5.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
 
 #load colours
 ccolours <- read_csv("gapminder_CC.csv")
@@ -70,14 +72,15 @@ freq_Author %>%
 
 
 ncd %>%
-   mutate(Author = fct_lump(Author, n = 20)) %>%
+   mutate(Author = fct_lump(Author, n = 10)) %>%
    count(Author) %>%
-   top_n(20) %>%
+   top_n(10) %>%
+   filter(Author != 'Other') %>%
    ggplot(aes(x=reorder(Author,-n), y=n)) +
    geom_bar(stat="identity") +
    xlab("Author")+
    ylab("Count")+
-   ggtitle("Top 20 Authors by Citation")+
+   ggtitle("Top 10 Authors by Citation")+
    coord_flip()
 
 ```
@@ -114,6 +117,32 @@ ncd %>%
 ```
 Maps (countries) by paper
 ```{r, echo=F, warning=F, message=F}
+#get world data (from maps library) 
+data(World)
+World <- filter(World, continent != 'Antarctica')
+
+###add barbados (missing in lowres map)
+#get barbados from hi res map (can do this for other islands missing in the low res map)
+hires <- fortify(map("worldHires", fill=TRUE, plot=FALSE))
+barbados <- hires %>% filter(region=="Barbados")
+
+#create multipolygon and set CRS
+bst <- sfheaders::sf_multipolygon(
+     obj = barbados
+     , x = "long"
+     , y = "lat"
+     , polygon_id = "region"
+   ) %>% 
+   st_set_crs(4326) %>% 
+   st_transform(crs=st_crs(World$geometry)) 
+
+#add barbados to the lowres World data
+World <- World %>% add_row(name="Barbados",geometry=bst$geometry)
+
+```
+
+
+```{r, echo=F, warning=F, message=F}
 
 #with help from https://geocompr.robinlovelace.net/adv-map.html
 
@@ -122,10 +151,6 @@ pmap <- ncd %>%
    group_by(Year, `Lancet Series`, Country) %>%
    summarise(count = n()) %>%
    filter(`Lancet Series` != 'No')
-
-#get world data (from maps library) 
-data(World)
-World <- filter(World, continent != 'Antarctica')
 
 #join NCD data to map data
 world.dat <- left_join(World, pmap, b=c('name'='Country'))
@@ -139,7 +164,7 @@ tmyear <- function(yr){
       tm_bubbles(alpha = 0.75, col = "red", border.col = "black", size = "count") +
       tm_layout(title = paste0(yr))
    
-   return(pmyear)
+   return(pmyear) 
 }
 
 #create plots
@@ -170,7 +195,17 @@ pm2018
 pmap.facet
 ```
 
-```{r}
+```{r, echo=F, warning=F, message=F}
+#save maps
+tmap_save(tm=pm2005, filename="png/map_lancet_2005.png")
+tmap_save(tm=pm2007, filename="png/map_lancet_2007.png")
+tmap_save(tm=pm2010, filename="png/map_lancet_2010.png")
+tmap_save(tm=pm2013, filename="png/map_lancet_2013.png")
+tmap_save(tm=pm2018, filename="png/map_lancet_2018.png")
+tmap_save(tm=pmap.facet, filename="png/map_lancet_facet.png")
+```
+
+```{r, echo=F, warning=F, message=F}
 pmap.anim <-tm_shape(world.dat) +
    tm_polygons() +
    tm_shape(world.dat) +
