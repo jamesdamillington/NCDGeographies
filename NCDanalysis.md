@@ -1,7 +1,7 @@
 Geographies of Non-Communicable Diseases
 ================
 James Millington
-2020-07-23
+2020-08-05
 
   - [Aim](#aim)
   - [Analysis: Counts](#analysis-counts)
@@ -9,7 +9,8 @@ James Millington
       - [Countries](#countries)
       - [Continents](#continents)
   - [Analysis: Temporal](#analysis-temporal)
-      - [Top 10 Authors](#top-10-authors)
+      - [All Data](#all-data)
+      - [Top 8 Authors](#top-8-authors)
       - [Top 20 Countries](#top-20-countries)
       - [Top 10 Countries](#top-10-countries)
       - [Continents](#continents-1)
@@ -34,29 +35,52 @@ Analyse database of expertise on Non-Communicable Disease (NCDs)
 ### Countries
 
 ![](NCDanalysis_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+Maps (countries) by paper
+
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-3.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-4.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-5.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-6.png)<!-- -->
+
+    ## Creating frames
+
+    ## ===========================
+
+    ## =============
+
+    ## =============
+
+    ## ==============
+
+    ## =============
+
+    ## 
+    ## Creating animation
+    ## Animation saved to /home/james/OneDrive/Research/Papers/InProgress/Herrick_HealthNCD/Analysis/NCDGeographies/map_lancet_anim.gif
 
 ### Continents
 
-![](NCDanalysis_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ## Analysis: Temporal
 
-### Top 10 Authors
+### All Data
 
-![](NCDanalysis_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-5-2.png)<!-- -->
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-10-2.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-10-3.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-10-4.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-10-5.png)<!-- -->
+
+### Top 8 Authors
+
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-11-2.png)<!-- -->
 
 ### Top 20 Countries
 
-![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-13-2.png)<!-- -->
 
 ### Top 10 Countries
 
-![](NCDanalysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-14-2.png)<!-- -->
 
 ### Continents
 
-![](NCDanalysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-15-2.png)<!-- -->
 
 ### Institution Type
 
-![](NCDanalysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
+![](NCDanalysis_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->![](NCDanalysis_files/figure-gfm/unnamed-chunk-16-2.png)<!-- -->

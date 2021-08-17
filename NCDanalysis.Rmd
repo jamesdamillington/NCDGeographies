@@ -3,9 +3,9 @@ title: "Geographies of Non-Communicable Diseases"
 author: "James Millington"
 date: '2020-08-05'
 output:
-  pdf_document:
-    toc: yes
   github_document:
+    toc: yes
+  pdf_document:
     toc: yes
   html_document:
     toc: yes
