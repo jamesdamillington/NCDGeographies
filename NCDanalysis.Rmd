@@ -37,7 +37,7 @@ library(mapdata)
 library(sf)
 
 #load data
-ncd <- read_csv("Copy of NCD reports completed and reformatted version 5.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
+ncd <- read_csv("NCDreports_2021-06-14.csv", col_types = cols(.default = col_character(), Year=col_integer(), PubID=col_integer()))
 
 #load colours
 ccolours <- read_csv("gapminder_CC.csv")
@@ -325,7 +325,7 @@ ggplot(prop_topA_byAY, aes(x=Year, y=yrprop, fill=Author)) +
    geom_text(aes(label=yrcount,x=Year,y=1.01), vjust=-0.3)
 ```
 
-```{r}
+````{r, echo=F, warning=F, message=F}
 # library(gapminder)
 # ccountries <- gapminder::country_colors
 # ccountries <- as.data.frame(ccountries)
